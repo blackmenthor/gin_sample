@@ -7,6 +7,15 @@ import (
 	"strconv"
 )
 
+type ResponseType int
+
+const (
+	Json     ResponseType = 0
+	XML                   = 1
+	Protobuf              = 2
+	YAML                  = 3
+)
+
 // album represents data about a record album.
 type album struct {
 	ID     string  `json:"id"`
@@ -19,8 +28,27 @@ type album struct {
 var albums []album
 
 // getAlbums responds with the list of all albums as JSON.
-func getAlbums(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, albums)
+func getAlbums(c *gin.Context, responseType ResponseType) {
+	switch responseType {
+	case Json:
+		c.IndentedJSON(http.StatusOK, albums)
+	case XML:
+		c.XML(http.StatusOK, albums)
+	case YAML:
+		c.YAML(http.StatusOK, albums)
+	case Protobuf:
+		//reps := []int64{int64(1), int64(2)}
+		//label := "Album"
+		//// The specific definition of protobuf is written in the testdata/protoexample file.
+		//data := &proto.Album{
+		//	Label: &label,
+		//	Reps:  reps,
+		//}
+		//// Note that data becomes binary data in the response
+		//// Will output protoexample.Test protobuf serialized data
+		//c.ProtoBuf(http.StatusOK, data)
+		c.IndentedJSON(http.StatusOK, albums)
+	}
 }
 
 // getAlbumByID locates the album whose ID value matches the id
@@ -73,7 +101,18 @@ func main() {
 	albums = initializeData()
 
 	router := gin.Default()
-	router.GET("/albums", getAlbums)
+	router.GET("/json/albums", func(c *gin.Context) {
+		getAlbums(c, Json)
+	})
+	router.GET("/xml/albums", func(c *gin.Context) {
+		getAlbums(c, XML)
+	})
+	router.GET("/yaml/albums", func(c *gin.Context) {
+		getAlbums(c, YAML)
+	})
+	router.GET("/proto/albums", func(c *gin.Context) {
+		getAlbums(c, Protobuf)
+	})
 	router.GET("/albums/:id", getAlbumByID)
 	router.POST("/albums", postAlbums)
 

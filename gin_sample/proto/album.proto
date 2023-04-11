@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+option go_package = "github.com/blackmenthor/protobuf-presentation/gin_sample/proto";
+
+package proto;
+
+message Album {
+  string id = 1;
+  string title = 2;
+  string artist = 3;
+  float price = 4;
+}
