@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	//pb "github.com/blackmenthor/gin_sample/publish"
+	pb "github.com/blackmenthor/gin_sample/publish"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
@@ -27,6 +27,7 @@ type album struct {
 
 // albums slice to seed record album data.
 var albums []album
+var albumsProto []*pb.ListOfAlbums_Album
 
 // getAlbums responds with the list of all albums as JSON.
 func getAlbums(c *gin.Context, responseType ResponseType) {
@@ -38,14 +39,10 @@ func getAlbums(c *gin.Context, responseType ResponseType) {
 	case YAML:
 		c.YAML(http.StatusOK, albums)
 	case Protobuf:
-		//reps := []int64{int64(1), int64(2)}
-		//label := "Album"
-		//// The specific definition of protobuf is written in the testdata/protoexample file.
-		//data := &pb.Album{}
-		//// Note that data becomes binary data in the response
-		//// Will output protoexample.Test protobuf serialized data
-		//c.ProtoBuf(http.StatusOK, data)
-		c.IndentedJSON(http.StatusOK, albums)
+		listOfAlbum := &pb.ListOfAlbums{
+			Albums: albumsProto,
+		}
+		c.ProtoBuf(http.StatusOK, listOfAlbum)
 	}
 }
 
@@ -81,7 +78,7 @@ func postAlbums(c *gin.Context) {
 }
 
 func initializeData() []album {
-	listOfData := []album{}
+	var listOfData []album
 	var maximumDataSize = 1000000
 	for i := 1; i < maximumDataSize; i++ {
 		var newAlbum = album{
@@ -95,8 +92,24 @@ func initializeData() []album {
 	return listOfData
 }
 
+func initializeDataProto() []*pb.ListOfAlbums_Album {
+	var maximumDataSize = 1000000
+	data := make([]*pb.ListOfAlbums_Album, maximumDataSize)
+	for i := 1; i < maximumDataSize; i++ {
+		var newAlbum = &pb.ListOfAlbums_Album{
+			Id:     strconv.Itoa(i),
+			Title:  fmt.Sprintf("Album %d", i),
+			Artist: fmt.Sprintf("Artist %d", i),
+			Price:  56.99,
+		}
+		data = append(data, newAlbum)
+	}
+	return data
+}
+
 func main() {
 	albums = initializeData()
+	albumsProto = initializeDataProto()
 
 	router := gin.Default()
 	router.GET("/json/albums", func(c *gin.Context) {
@@ -114,5 +127,5 @@ func main() {
 	router.GET("/albums/:id", getAlbumByID)
 	router.POST("/albums", postAlbums)
 
-	router.Run("localhost:8080")
+	router.RunTLS(":8080", "./cert.pem", "./key.pem")
 }
