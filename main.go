@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	pb "github.com/blackmenthor/protobuf-presentation/gin_sample/publish"
+	//pb "github.com/blackmenthor/gin_sample/publish"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
@@ -41,11 +41,11 @@ func getAlbums(c *gin.Context, responseType ResponseType) {
 		//reps := []int64{int64(1), int64(2)}
 		//label := "Album"
 		//// The specific definition of protobuf is written in the testdata/protoexample file.
-		data := &pb.Album{}
+		//data := &pb.Album{}
 		//// Note that data becomes binary data in the response
 		//// Will output protoexample.Test protobuf serialized data
-		c.ProtoBuf(http.StatusOK, data)
-		//c.IndentedJSON(http.StatusOK, albums)
+		//c.ProtoBuf(http.StatusOK, data)
+		c.IndentedJSON(http.StatusOK, albums)
 	}
 }
 
