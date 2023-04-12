@@ -1,10 +1,10 @@
-module main
+module github.com/blackmenthor/gin_sample
 
 go 1.20
 
 require (
 	github.com/gin-gonic/gin v1.9.0
-	google.golang.org/protobuf v1.28.1
+	google.golang.org/protobuf v1.30.0
 )
 
 require (
