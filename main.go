@@ -1,9 +1,14 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	pb "github.com/blackmenthor/gin_sample/publish"
+	pbt "github.com/blackmenthor/gin_sample/tutorial"
 	"github.com/gin-gonic/gin"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -11,10 +16,11 @@ import (
 type ResponseType int
 
 const (
-	Json     ResponseType = 0
-	XML                   = 1
-	Protobuf              = 2
-	YAML                  = 3
+	Json         ResponseType = 0
+	XML                       = 1
+	Protobuf                  = 2
+	Protobuf_new              = 3
+	YAML                      = 4
 )
 
 // album represents data about a record album.
@@ -43,6 +49,38 @@ func getAlbums(c *gin.Context, responseType ResponseType) {
 			Albums: albumsProto,
 		}
 		c.ProtoBuf(http.StatusOK, listOfAlbum)
+	case Protobuf_new:
+		kb := 1024
+		mb := 1024 * kb
+		gb := 1024 * mb
+
+		conn, err := grpc.Dial(
+			"localhost:9000",
+			grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(1*gb)),
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+		)
+		if err != nil {
+			log.Fatalf("failed to connect: %v", err)
+		}
+		defer conn.Close()
+
+		// Code removed for brevity
+
+		client := pbt.NewAlbumServiceClient(conn)
+
+		// Note how we are calling the GetBookList method on the server
+		// This is available to us through the auto-generated code
+		albumz, errz := client.GetAlbum(context.Background(), &pbt.AlbumRequest{})
+
+		if errz != nil {
+			log.Printf("grpc error %v", errz)
+			c.ProtoBuf(http.StatusInternalServerError, errz)
+		}
+
+		resp := albumz.GetAlbums()
+
+		fmt.Printf("test albums %v", len(resp))
+		c.ProtoBuf(http.StatusOK, albumz)
 	}
 }
 
@@ -124,8 +162,11 @@ func main() {
 	router.GET("/proto/albums", func(c *gin.Context) {
 		getAlbums(c, Protobuf)
 	})
+	router.GET("/proto-2/albums", func(c *gin.Context) {
+		getAlbums(c, Protobuf_new)
+	})
 	router.GET("/albums/:id", getAlbumByID)
 	router.POST("/albums", postAlbums)
 
-	router.Run(":8080")
+	router.Run(":8081")
 }
