@@ -127,5 +127,5 @@ func main() {
 	router.GET("/albums/:id", getAlbumByID)
 	router.POST("/albums", postAlbums)
 
-	router.RunTLS(":8080", "./cert.pem", "./key.pem")
+	router.Run(":8080")
 }
